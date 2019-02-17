@@ -7,13 +7,18 @@ body {
 	height: 100vh;
 	background-color: #1e1e2f;
 	position: relative;
+	overflow: hidden;
 }
 
 .firefly {
-	width: 5px;
-	height: 5px;
 	background-color: lightblue;
-	box-shadow: 0 0 6px 2px #9ff2fb;
 	border-radius: 100%;
 	position: absolute;
+}
+
+.hill {
+	border-radius: 100%;
+	position: absolute;
+	background-color: #164c2c;
+	box-shadow: 0 0 3px 1px black;
 }

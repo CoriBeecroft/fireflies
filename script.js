@@ -1,5 +1,3 @@
-console.log("hello");
-
 const container = document.getElementById("container");
 const height = window.innerHeight;
 const width = window.innerWidth;
@@ -43,32 +41,54 @@ class Fireflies extends React.Component {
 		return fireflies;
 	}
 
-	generateFirefly() {
-		return {
+	generateFirefly(options) {
+		return Object.assign({
 			x: getRandomInt(0, width),
 			y: getRandomInt(0, height),
+			size: getRandomInt(2, 5),
 			xVelocity: getRandomInt(0, 1) ? 2 : -2,
 			yVelocity: getRandomInt(0, 1) ? 2 : -2,
-		}
+		}, options);
 	}
 
-	addFirefly() {
+	addFirefly(e) {
+		const x = e.nativeEvent.pageX; 
+		const y = e.nativeEvent.pageY;
 		this.setState(ps => {
 			return {
-				fireflies: ps.fireflies.concat(this.generateFirefly())
+				fireflies: ps.fireflies.concat(this.generateFirefly({
+					x: x,
+					y: y,
+					// xVelocity: 0, 
+					// yVelocity: 0,
+				}))
 			}
 		});
 	}
 
 	render() {
-		console.log(this.state.fireflies.length);
+		const bigHillHeight = 1.4*height;
+		const smallHillSize = 0.9*bigHillHeight;
+
 		return <div onClick={ this.addFirefly }>
 			<Background>
+				<Hill width={ smallHillSize } height={ smallHillSize }
+						bottom={ -0.8*smallHillSize } right={ 0.1*smallHillSize } />
+				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				{ this.state.fireflies.map((a, i) =>
-					<Firefly key={ i } x={ a.x } y={ a.y } />) }
+					<Firefly key={ i } x={ a.x } y={ a.y } size={ a.size } />) }
 			</Background>
 		</div>
 	}
+}
+
+const Hill = props => {
+	return <div className="hill" style={{
+		width: props.width + "px",
+		height: props.height + "px",
+		bottom: props.bottom || -2/3 * props.height, 
+		right: props.right || -0.5 * props.width,
+	}} />
 }
 
 const Background = props => {
@@ -87,7 +107,13 @@ class Firefly extends React.Component {
 	}
 
 	render() {
-		return <div style={{ top: this.props.y, left: this.props.x }} className="firefly" />	
+		return <div className="firefly" style={{
+			top: this.props.y,
+			left: this.props.x,
+			width: this.props.size + "px", 
+			height: this.props.size + "px",
+			boxShadow: "0 0 6px 2px #9ff2fb",
+		}} />	
 	}
 }
 
