@@ -14,21 +14,34 @@ class Fireflies extends React.Component {
 
 		setInterval(() => {
 			this.setState((ps) => {
-				const newFireflies = ps.fireflies.map(f => {
-					const xVelocity = getRandomInt(1, 10) > 1 ? f.xVelocity : -1*f.xVelocity;
-					const yVelocity = getRandomInt(1, 10) > 1 ? f.yVelocity : -1*f.yVelocity;
-
-					return {
-						xVelocity: xVelocity, 
-						yVelocity: yVelocity,
-						x: f.x + xVelocity,
-						y: f.y + yVelocity,
-
-					}
+				const newFireflies = ps.fireflies.filter(f => !this.fireflyHasLeft(f)).map((f, i) => {
+					return this.updateFirefly(f);
 				})
 				return { fireflies: newFireflies }
 			})
 		}, 50);
+	}
+
+	fireflyHasLeft(f) {
+		const buffer = 200;
+
+		return f.x < -1*buffer ||
+			f.x > width + buffer ||
+			f.y < -1*buffer ||
+			f.y > height + buffer;
+	}
+
+	updateFirefly(f) {
+		const xVelocity = getRandomInt(1, 10) > 1 ? f.xVelocity : -1*f.xVelocity;
+		const yVelocity = getRandomInt(1, 10) > 1 ? f.yVelocity : -1*f.yVelocity;
+
+		return {
+			xVelocity: xVelocity, 
+			yVelocity: yVelocity,
+			x: f.x + xVelocity,
+			y: f.y + yVelocity,
+
+		}
 	}
 
 	generateFireflies(numFireflies) {
@@ -75,6 +88,7 @@ class Fireflies extends React.Component {
 				<Hill width={ smallHillSize } height={ smallHillSize }
 						bottom={ -0.8*smallHillSize } right={ 0.1*smallHillSize } />
 				<Hill width={ bigHillHeight } height={ bigHillHeight } />
+				<div className="moon" />
 				{ this.state.fireflies.map((a, i) =>
 					<Firefly key={ i } x={ a.x } y={ a.y } size={ a.size } />) }
 			</Background>

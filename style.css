@@ -19,6 +19,19 @@ body {
 .hill {
 	border-radius: 100%;
 	position: absolute;
-	background-color: #164c2c;
+	background-color: #1d422d;
 	box-shadow: 0 0 3px 1px black;
+}
+
+.moon {
+	position: absolute;
+	top: 120px;
+	left: 150px;
+	width: 200px;
+	height: 200px;
+	background-color: #efe;
+	border-radius: 100%;
+	box-shadow: 0px 0 14px 12px #eeffeeed, 0px 0 23px 26px #eeffee5e;
+	border: none;
+
 }
