@@ -1,0 +1,19 @@
+body {
+	margin: 0px;
+}
+
+.background {
+	width: 100vw;
+	height: 100vh;
+	background-color: #1e1e2f;
+	position: relative;
+}
+
+.firefly {
+	width: 5px;
+	height: 5px;
+	background-color: lightblue;
+	box-shadow: 0 0 6px 2px #9ff2fb;
+	border-radius: 100%;
+	position: absolute;
+}
