@@ -11,10 +11,14 @@ class Fireflies extends React.Component {
 		}
 
 		this.addFirefly = this.addFirefly.bind(this);
+		this.growFirefly = this.growFirefly.bind(this);
+
+		this.growFireflyInterval = null;
+		this.growableFireflyPosition = null; 
 
 		setInterval(() => {
 			this.setState((ps) => {
-				const newFireflies = ps.fireflies.filter(firefly => !this.fireflyHasLeft(firefly)).map((ffirefly, i) => {
+				const newFireflies = ps.fireflies.filter(firefly => !this.fireflyHasLeft(firefly)).map((firefly, i) => {
 					return this.updateFirefly(firefly);
 				})
 				return { fireflies: newFireflies }
@@ -35,13 +39,13 @@ class Fireflies extends React.Component {
 		const xVelocity = getRandomInt(1, 10) > 1 ? firefly.xVelocity : -1*firefly.xVelocity;
 		const yVelocity = getRandomInt(1, 10) > 1 ? firefly.yVelocity : -1*firefly.yVelocity;
 
-		return {
+		return Object.assign({}, firefly, {
 			xVelocity: xVelocity, 
 			yVelocity: yVelocity,
 			x: firefly.x + xVelocity,
 			y: firefly.y + yVelocity,
 
-		}
+		});
 	}
 
 	generateFireflies(numFireflies) {
@@ -67,30 +71,75 @@ class Fireflies extends React.Component {
 	addFirefly(e) {
 		const x = e.nativeEvent.pageX; 
 		const y = e.nativeEvent.pageY;
+		const newFirefly = this.generateFirefly({
+			x: x,
+			y: y,
+			xVelocity: 0, 
+			yVelocity: 0,
+		});
+
 		this.setState(ps => {
 			return {
-				fireflies: ps.fireflies.concat(this.generateFirefly({
-					x: x,
-					y: y,
-					// xVelocity: 0, 
-					// yVelocity: 0,
-				}))
+				fireflies: ps.fireflies.concat(newFirefly)
 			}
 		});
+
+		return { x: x, y: y };
+	}
+
+	growFirefly(e) {
+		const addedFirefly = this.addFirefly(e);
+		this.growableFireflyPosition = addedFirefly;
+
+		this.growFireflyInterval = setInterval(() => {
+			this.updateOneFirefly(addedFirefly, (currentFirefly) => {
+				return {
+					size: currentFirefly.size * 1.1,
+				}
+			})
+		}, 30);
+	}
+
+	updateOneFirefly(fireflyPosition, options) {
+		const targetFirefly = this.findFirefly(fireflyPosition);
+		this.setState(prevState => {
+			return {
+				fireflies: prevState.fireflies.map(firefly => {
+					if(firefly === targetFirefly) {
+						if(typeof options == 'function') {
+							const optionsFunction = options;
+							return Object.assign({}, targetFirefly, optionsFunction(targetFirefly))
+						} else return Object.assign({}, targetFirefly, options);
+					} else return firefly;
+				})
+			}
+		});
+	}
+
+	findFirefly(position) {
+		return this.state.fireflies.find(firefly => firefly.x == position.x && firefly.y == position.y);
 	}
 
 	render() {
 		const bigHillHeight = 1.4*height;
 		const smallHillSize = 0.9*bigHillHeight;
 
-		return <div onClick={ this.addFirefly }>
+		return <div onMouseDown={ this.growFirefly } onMouseUp={ () => {
+			clearInterval(this.growFireflyInterval);
+
+			this.updateOneFirefly(this.growableFireflyPosition, {
+				xVelocity: getRandomInt(0, 1) ? 2 : -2,
+				yVelocity: getRandomInt(0, 1) ? 2 : -2,
+			});
+		}}>
 			<Background>
 				<Hill width={ smallHillSize } height={ smallHillSize }
 						bottom={ -0.8*smallHillSize } right={ 0.1*smallHillSize } />
 				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				<div className="moon" />
-				{ this.state.fireflies.map((firefly, i) =>
-					<Firefly key={ i } x={ firefly.x } y={ firefly.y } size={ firefly.size } />) }
+				{ this.state.fireflies.map((firefly, i) => {
+					return <Firefly key={ i } x={ firefly.x } y={ firefly.y } size={ firefly.size } />
+				}) }
 			</Background>
 		</div>
 	}
@@ -121,12 +170,14 @@ class Firefly extends React.Component {
 	}
 
 	render() {
+		const blur = this.props.size <= 6 ? 6 : Math.max(this.props.size, 6);
+		const spread = this.props.size <= 6 ? 2 : Math.max(0.33*this.props.size, 2);
 		return <div className="firefly" style={{
 			top: this.props.y,
 			left: this.props.x,
 			width: this.props.size + "px", 
 			height: this.props.size + "px",
-			boxShadow: "0 0 6px 2px #9ff2fb",
+			boxShadow: "0 0 " + blur + "px " + spread + "px #9ff2fb", 							//"0 0 6px 2px #9ff2fb",
 		}} />	
 	}
 }
