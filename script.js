@@ -14,32 +14,32 @@ class Fireflies extends React.Component {
 
 		setInterval(() => {
 			this.setState((ps) => {
-				const newFireflies = ps.fireflies.filter(f => !this.fireflyHasLeft(f)).map((f, i) => {
-					return this.updateFirefly(f);
+				const newFireflies = ps.fireflies.filter(firefly => !this.fireflyHasLeft(firefly)).map((ffirefly, i) => {
+					return this.updateFirefly(firefly);
 				})
 				return { fireflies: newFireflies }
 			})
 		}, 50);
 	}
 
-	fireflyHasLeft(f) {
+	fireflyHasLeft(firefly) {
 		const buffer = 200;
 
-		return f.x < -1*buffer ||
-			f.x > width + buffer ||
-			f.y < -1*buffer ||
-			f.y > height + buffer;
+		return firefly.x < -1*buffer ||
+			firefly.x > width + buffer ||
+			firefly.y < -1*buffer ||
+			firefly.y > height + buffer;
 	}
 
-	updateFirefly(f) {
-		const xVelocity = getRandomInt(1, 10) > 1 ? f.xVelocity : -1*f.xVelocity;
-		const yVelocity = getRandomInt(1, 10) > 1 ? f.yVelocity : -1*f.yVelocity;
+	updateFirefly(firefly) {
+		const xVelocity = getRandomInt(1, 10) > 1 ? firefly.xVelocity : -1*firefly.xVelocity;
+		const yVelocity = getRandomInt(1, 10) > 1 ? firefly.yVelocity : -1*firefly.yVelocity;
 
 		return {
 			xVelocity: xVelocity, 
 			yVelocity: yVelocity,
-			x: f.x + xVelocity,
-			y: f.y + yVelocity,
+			x: firefly.x + xVelocity,
+			y: firefly.y + yVelocity,
 
 		}
 	}
@@ -89,8 +89,8 @@ class Fireflies extends React.Component {
 						bottom={ -0.8*smallHillSize } right={ 0.1*smallHillSize } />
 				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				<div className="moon" />
-				{ this.state.fireflies.map((a, i) =>
-					<Firefly key={ i } x={ a.x } y={ a.y } size={ a.size } />) }
+				{ this.state.fireflies.map((firefly, i) =>
+					<Firefly key={ i } x={ firefly.x } y={ firefly.y } size={ firefly.size } />) }
 			</Background>
 		</div>
 	}
