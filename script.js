@@ -15,6 +15,7 @@ class Fireflies extends React.Component {
 
 		this.growFireflyInterval = null;
 		this.growableFireflyPosition = null; 
+		this.maxFireflySize = 8;
 
 		setInterval(() => {
 			this.setState((ps) => {
@@ -91,24 +92,60 @@ class Fireflies extends React.Component {
 	growFirefly(e) {
 		this.growableFireflyPosition = this.addFirefly(e);
 		const mousePosition = { x: e.nativeEvent.pageX,  y: e.nativeEvent.pageY, }
-		this.growFireflyInterval = setInterval(() => {
-			this.updateOneFirefly(this.growableFireflyPosition, currentFirefly => {
-				const size = currentFirefly.size * 1.1;
-				this.growableFireflyPosition = {
-					x: mousePosition.x - 0.5 * size,
-					y: mousePosition.y - 0.5 * size,
-				}
+		const maxIntervalsSinceSizeMaxed = 10;
+		let numIntervalsSinceSizeMaxed = 0;
+		let sploded = false;
 
-				return {
-					...this.growableFireflyPosition,
-					size: size,
+		this.growFireflyInterval = setInterval(() => {
+			if(this.growableFireflyPosition && this.findFirefly(this.growableFireflyPosition).size < this.maxFireflySize) {
+				this.updateOneFirefly(this.growableFireflyPosition, currentFirefly => {
+					const size = currentFirefly.size + 0.5;
+					this.growableFireflyPosition = {
+						x: mousePosition.x - 0.5 * size,
+						y: mousePosition.y - 0.5 * size,
+					}
+
+					return {
+						...this.growableFireflyPosition,
+						size: size,
+					}
+				})
+			} else {
+				if (!sploded && ++numIntervalsSinceSizeMaxed > maxIntervalsSinceSizeMaxed) {
+					this.splodeFirefly(this.findFirefly(this.growableFireflyPosition));
+					console.log("'Splode!!!!");
+					sploded = true;
+					this.growableFireflyPosition = null;
 				}
-			})
-		}, 30);
+			}
+		}, 20);
+	}
+
+	splodeFirefly(firefly) {
+		const NUM_FIREFLY_SPAWN = 16;
+		let newFireflies = [];
+		for(let i=0; i<NUM_FIREFLY_SPAWN; i++ ) {
+			const newFirefly = this.generateFirefly({
+				x: firefly.x,
+				y: firefly.y,
+				size: 2,
+				xVelocity: getRandomInt(0, 1) ? 2 : -2,
+				yVelocity: getRandomInt(0, 1) ? 2 : -2,
+			});
+			newFireflies.push(newFirefly);
+		}
+
+		this.setState(ps => {
+			return {
+				fireflies: ps.fireflies.filter(f => !(f.x == firefly.x && f.y == firefly.y && f.size > 2)).concat(newFireflies),
+			}
+		});
 	}
 
 	updateOneFirefly(fireflyPosition, options) {
 		const targetFirefly = this.findFirefly(fireflyPosition);
+
+		if(!targetFirefly) return;
 
 		this.setState(prevState => {
 			return {
@@ -136,10 +173,12 @@ class Fireflies extends React.Component {
 		return <div onMouseDown={ this.growFirefly } onMouseUp={ () => {
 			clearInterval(this.growFireflyInterval);
 
-			this.updateOneFirefly(this.growableFireflyPosition, {
-				xVelocity: getRandomInt(0, 1) ? 2 : -2,
-				yVelocity: getRandomInt(0, 1) ? 2 : -2,
-			});
+			if(this.growableFireflyPosition) {
+				this.updateOneFirefly(this.growableFireflyPosition, {
+					xVelocity: getRandomInt(0, 1) ? 2 : -2,
+					yVelocity: getRandomInt(0, 1) ? 2 : -2,
+				});
+			}
 		}}>
 			<Background>
 				<Hill width={ smallHillSize } height={ smallHillSize }
