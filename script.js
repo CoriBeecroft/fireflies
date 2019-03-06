@@ -1,6 +1,6 @@
 const container = document.getElementById("container");
-const height = window.innerHeight;
-const width = window.innerWidth;
+const getHeight = () => window.innerHeight;
+const getWidth = () => window.innerWidth;
 
 class Fireflies extends React.Component {
 	constructor(props) {
@@ -31,9 +31,9 @@ class Fireflies extends React.Component {
 		const buffer = 200;
 
 		return firefly.x < -1*buffer ||
-			firefly.x > width + buffer ||
+			firefly.x > getWidth() + buffer ||
 			firefly.y < -1*buffer ||
-			firefly.y > height + buffer;
+			firefly.y > getHeight() + buffer;
 	}
 
 	updateFirefly(firefly) {
@@ -61,8 +61,8 @@ class Fireflies extends React.Component {
 
 	generateFirefly(options) {
 		return Object.assign({
-			x: getRandomInt(0, width),
-			y: getRandomInt(0, height),
+			x: getRandomInt(0, getWidth()),
+			y: getRandomInt(0, getHeight()),
 			size: getRandomInt(2, 5),
 			xVelocity: getRandomInt(0, 1) ? 2 : -2,
 			yVelocity: getRandomInt(0, 1) ? 2 : -2,
@@ -167,7 +167,7 @@ class Fireflies extends React.Component {
 	}
 
 	render() {
-		const bigHillHeight = 1.4*height;
+		const bigHillHeight = 1.4*getHeight();
 		const smallHillSize = 0.9*bigHillHeight;
 
 		return <div onMouseDown={ this.growFirefly } onMouseUp={ () => {
@@ -225,7 +225,7 @@ class Firefly extends React.Component {
 			left: this.props.x,
 			width: this.props.size + "px", 
 			height: this.props.size + "px",
-			boxShadow: "0 0 " + blur + "px " + spread + "px #9ff2fb", 							//"0 0 6px 2px #9ff2fb",
+			boxShadow: "0 0 " + blur + "px " + spread + "px #9ff2fb",
 		}} />	
 	}
 }
