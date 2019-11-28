@@ -1,14 +1,19 @@
 const container = document.getElementById("container");
 const getHeight = () => window.innerHeight;
 const getWidth = () => window.innerWidth;
+const parseQueryString = () => {
+	return (window.location.search.substring(1, window.location.search.length) || "")
+		.split("&")
+		.reduce((total, param) =>
+			({ ...total, [param.split("=")[0]]: param.split("=")[1] }), {});
+}
 
 class Fireflies extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			fireflies: this.generateFireflies(125),
-		}
+		const initialNumFireflies = Math.min(Number(parseQueryString().numFireflies) || 125, 800);
+		this.state = { fireflies: this.generateFireflies(initialNumFireflies) }
 
 		this.addFirefly = this.addFirefly.bind(this);
 		this.growFirefly = this.growFirefly.bind(this);
@@ -18,12 +23,11 @@ class Fireflies extends React.Component {
 		this.maxFireflySize = 8;
 
 		setInterval(() => {
-			this.setState((ps) => {
-				const newFireflies = ps.fireflies.filter(firefly => !this.fireflyHasLeft(firefly)).map((firefly, i) => {
-					return this.updateFirefly(firefly);
-				})
-				return { fireflies: newFireflies }
-			})
+			this.setState((ps) => ({
+				fireflies: ps.fireflies
+					.filter(firefly => !this.fireflyHasLeft(firefly))
+					.map(firefly => this.updateFirefly(firefly))
+			}))
 		}, 50);
 	}
 
@@ -137,7 +141,9 @@ class Fireflies extends React.Component {
 
 		this.setState(ps => {
 			return {
-				fireflies: ps.fireflies.filter(f => !(f.x == firefly.x && f.y == firefly.y && f.size > 2)).concat(newFireflies),
+				fireflies: ps.fireflies.filter(f =>
+					!(f.x == firefly.x && f.y == firefly.y && f.size > 2))
+						.concat(newFireflies),
 			}
 		});
 	}
@@ -163,7 +169,8 @@ class Fireflies extends React.Component {
 	}
 
 	findFirefly(position) {
-		return this.state.fireflies.find(firefly => firefly.x == position.x && firefly.y == position.y);
+		return this.state.fireflies.find(firefly =>
+			firefly.x == position.x && firefly.y == position.y);
 	}
 
 	render() {
@@ -186,7 +193,12 @@ class Fireflies extends React.Component {
 				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				<div className="moon" />
 				{ this.state.fireflies.map((firefly, i) => {
-					return <Firefly key={ i } x={ firefly.x } y={ firefly.y } size={ firefly.size } />
+					return <Firefly { ...{
+						key: i,
+						x: firefly.x,
+						y: firefly.y,
+						size: firefly.size,
+					 }} />
 				}) }
 			</Background>
 		</div>
@@ -197,7 +209,7 @@ const Hill = props => {
 	return <div className="hill" style={{
 		width: props.width + "px",
 		height: props.height + "px",
-		bottom: props.bottom || -2/3 * props.height, 
+		bottom: props.bottom || -2/3 * props.height,
 		right: props.right || -0.5 * props.width,
 	}} />
 }
@@ -230,4 +242,4 @@ class Firefly extends React.Component {
 	}
 }
 
-ReactDOM.render(<Fireflies />, container);	
+ReactDOM.render(<Fireflies />, container);
