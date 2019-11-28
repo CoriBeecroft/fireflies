@@ -15,10 +15,13 @@ class Fireflies extends React.Component {
 		this.addFirefly = this.addFirefly.bind(this);
 		this.growFirefly = this.growFirefly.bind(this);
 		this.generateFirefly = this.generateFirefly.bind(this);
+		this.releaseGrownFirefly = this.releaseGrownFirefly.bind(this);
 
 		this.growFireflyInterval = null;
-		this.growableFireflyPosition = null; 
+		this.growableFireflyId = null;
 		this.maxFireflySize = 8;
+
+		this.fireflyIdCounter = 0;
 
 		const initialNumFireflies = Math.min(
 			Number(parseQueryString().numFireflies) || 125,
@@ -70,6 +73,7 @@ class Fireflies extends React.Component {
 
 	generateFirefly(options) {
 		return {
+			id: this.fireflyIdCounter++,
 			x: getRandomInt(0, getWidth()),
 			y: getRandomInt(0, getHeight()),
 			size: getRandomInt(2, this.maxFireflySize),
@@ -92,36 +96,32 @@ class Fireflies extends React.Component {
 
 		this.setState(ps => ({ fireflies: ps.fireflies.concat(newFirefly) }));
 
-		return { x: x, y: y };
+		return newFirefly.id;
 	}
 
 	growFirefly(e) {
-		this.growableFireflyPosition = this.addFirefly(e);
+		this.growableFireflyId = this.addFirefly(e);
 		const mousePosition = { x: e.nativeEvent.pageX,  y: e.nativeEvent.pageY, }
 		const maxIntervalsSinceSizeMaxed = 10;
 		let numIntervalsSinceSizeMaxed = 0;
 		let sploded = false;
 
 		this.growFireflyInterval = setInterval(() => {
-			if(this.growableFireflyPosition && this.findFirefly(this.growableFireflyPosition).size < this.maxFireflySize) {
-				this.updateOneFirefly(this.growableFireflyPosition, currentFirefly => {
+			if(this.growableFireflyId && this.findFirefly(this.growableFireflyId).size < this.maxFireflySize) {
+				this.updateOneFirefly(this.growableFireflyId, currentFirefly => {
 					const size = currentFirefly.size + 0.5;
-					this.growableFireflyPosition = {
-						x: mousePosition.x - 0.5 * size,
-						y: mousePosition.y - 0.5 * size,
-					}
 
 					return {
-						...this.growableFireflyPosition,
+						x: mousePosition.x - 0.5 * size,
+						y: mousePosition.y - 0.5 * size,
 						size: size,
 					}
 				})
 			} else {
 				if (!sploded && ++numIntervalsSinceSizeMaxed > maxIntervalsSinceSizeMaxed) {
-					this.splodeFirefly(this.findFirefly(this.growableFireflyPosition));
-					console.log("'Splode!!!!");
+					this.splodeFirefly(this.findFirefly(this.growableFireflyId));
 					sploded = true;
-					this.growableFireflyPosition = null;
+					this.growableFireflyId = null;
 				}
 			}
 		}, 20);
@@ -150,8 +150,19 @@ class Fireflies extends React.Component {
 		});
 	}
 
-	updateOneFirefly(fireflyPosition, options) {
-		const targetFirefly = this.findFirefly(fireflyPosition);
+	releaseGrownFirefly() {
+		clearInterval(this.growFireflyInterval);
+
+		if(this.growableFireflyId) {
+			this.updateOneFirefly(this.growableFireflyId, {
+				xVelocity: getRandomInt(0, 1) ? 2 : -2,
+				yVelocity: getRandomInt(0, 1) ? 2 : -2,
+			});
+		}
+	}
+
+	updateOneFirefly(fireflyId, options) {
+		const targetFirefly = this.findFirefly(fireflyId);
 
 		if(!targetFirefly) return;
 
@@ -163,32 +174,22 @@ class Fireflies extends React.Component {
 							options = options(targetFirefly);
 						}
 
-						return Object.assign({}, targetFirefly, options);
+						return { ...targetFirefly, ...options };
 					} else return firefly;
 				})
 			}
 		});
 	}
 
-	findFirefly(position) {
-		return this.state.fireflies.find(firefly =>
-			firefly.x == position.x && firefly.y == position.y);
+	findFirefly(fireflyId) {
+		return this.state.fireflies.find(firefly => firefly.id == fireflyId);
 	}
 
 	render() {
 		const bigHillHeight = 1.4*getHeight();
 		const smallHillSize = 0.9*bigHillHeight;
 
-		return <div onMouseDown={ this.growFirefly } onMouseUp={ () => {
-			clearInterval(this.growFireflyInterval);
-
-			if(this.growableFireflyPosition) {
-				this.updateOneFirefly(this.growableFireflyPosition, {
-					xVelocity: getRandomInt(0, 1) ? 2 : -2,
-					yVelocity: getRandomInt(0, 1) ? 2 : -2,
-				});
-			}
-		}}>
+		return <div onMouseDown={ this.growFirefly } onMouseUp={ this.releaseGrownFirefly }>
 			<Background>
 				<Hill { ...{
 					width: smallHillSize,
