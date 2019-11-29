@@ -49,8 +49,8 @@ class Fireflies extends React.Component {
 	}
 
 	updateFirefly(firefly) {
-		const xVelocity = getRandomInt(1, 10) > 1 ? firefly.xVelocity : -1*firefly.xVelocity;
-		const yVelocity = getRandomInt(1, 10) > 1 ? firefly.yVelocity : -1*firefly.yVelocity;
+		const xVelocity = getRandomInt(1, (firefly.size*2)) > 1 ? firefly.xVelocity : -1*firefly.xVelocity;
+		const yVelocity = getRandomInt(1, (firefly.size*2)) > 1 ? firefly.yVelocity : -1*firefly.yVelocity;
 
 		return Object.assign({}, firefly, {
 			xVelocity: xVelocity, 
@@ -92,20 +92,24 @@ class Fireflies extends React.Component {
 			y: y,
 			xVelocity: 0, 
 			yVelocity: 0,
+			size: 2,
 		});
 
 		this.setState(ps => ({ fireflies: ps.fireflies.concat(newFirefly) }));
 
-		return newFirefly.id;
+		return newFirefly;
 	}
 
 	growFirefly(e) {
-		this.growableFireflyId = this.addFirefly(e);
+		this.growableFireflyId = this.addFirefly(e).id;
 		const mousePosition = { x: e.nativeEvent.pageX,  y: e.nativeEvent.pageY, }
-		const maxIntervalsSinceSizeMaxed = 10;
+		const maxIntervalsSinceSizeMaxed = 15;
 		let numIntervalsSinceSizeMaxed = 0;
 		let sploded = false;
 
+		if(this.growFireflyInterval != null) {
+			clearInterval(this.growFireflyInterval);
+		}
 		this.growFireflyInterval = setInterval(() => {
 			if(this.growableFireflyId && this.findFirefly(this.growableFireflyId).size < this.maxFireflySize) {
 				this.updateOneFirefly(this.growableFireflyId, currentFirefly => {
@@ -122,9 +126,10 @@ class Fireflies extends React.Component {
 					this.splodeFirefly(this.findFirefly(this.growableFireflyId));
 					sploded = true;
 					this.growableFireflyId = null;
+					clearInterval(this.growFireflyInterval);
 				}
 			}
-		}, 20);
+		}, 30);
 	}
 
 	splodeFirefly(firefly) {
@@ -191,13 +196,13 @@ class Fireflies extends React.Component {
 
 		return <div onMouseDown={ this.growFirefly } onMouseUp={ this.releaseGrownFirefly }>
 			<Background>
+				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				<Hill { ...{
 					width: smallHillSize,
 					height: smallHillSize,
 					bottom: -0.8*smallHillSize,
 					right: 0.1*smallHillSize,
 				}}/>
-				<Hill width={ bigHillHeight } height={ bigHillHeight } />
 				<div className="moon" />
 				{ this.state.fireflies.map((firefly, i) => (<Firefly { ...{
 					key: i,
