@@ -248,8 +248,7 @@ class Firefly extends React.Component {
 		const blur = this.props.size <= 6 ? 6 : Math.max(this.props.size, 6);
 		const spread = this.props.size <= 6 ? 2 : Math.max(0.33*this.props.size, 2);
 		return <div className="firefly" style={{
-			top: this.props.y,
-			left: this.props.x,
+			transform: `translate(${ this.props.x }px, ${ this.props.y }px)`,
 			width: this.props.size + "px", 
 			height: this.props.size + "px",
 			boxShadow: "0 0 " + blur + "px " + spread + "px #9ff2fb",
